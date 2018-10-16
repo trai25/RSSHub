@@ -1,5 +1,5 @@
 const axios = require('../../utils/axios');
-const config = require('../../config');
+const utils = require('./utils');
 
 module.exports = async (ctx) => {
     const id = ctx.params.id;
@@ -8,10 +8,9 @@ module.exports = async (ctx) => {
         method: 'get',
         url: `https://www.zhihu.com/api/v4/members/${id}/activities?limit=7`,
         headers: {
-            'User-Agent': config.ua,
+            ...utils.header,
             Referer: `https://www.zhihu.com/people/${id}/activities`,
-            authorization: 'oauth c3cef7c66a1843f8b3a9e6a1e3160e20',
-            'X-API-VERSION': '3.0.40',
+            Authorization: 'oauth c3cef7c66a1843f8b3a9e6a1e3160e20', // hard-coded in js
         },
     });
 
@@ -35,16 +34,16 @@ module.exports = async (ctx) => {
                 switch (item.target.type) {
                     case 'answer':
                         title = detail.question.title;
-                        description = detail.content;
+                        description = utils.ProcessImage(detail.content);
                         url = `https://www.zhihu.com/question/${detail.question.id}/answer/${detail.id}`;
                         break;
                     case 'article':
                         title = detail.title;
-                        description = detail.content;
+                        description = utils.ProcessImage(detail.content);
                         url = `https://zhuanlan.zhihu.com/p/${detail.id}`;
                         break;
                     case 'pin':
-                        title = detail.excerpt_title.length > 17 ? detail.excerpt_title.slice(0, 17) + '...' : detail.excerpt_title;
+                        title = detail.excerpt_title;
                         detail.content.forEach((contentItem) => {
                             if (contentItem.type === 'text') {
                                 text = `<p>${contentItem.own_text}</p>`;
@@ -58,7 +57,7 @@ module.exports = async (ctx) => {
                         url = `https://www.zhihu.com/pin/${detail.id}`;
                         break;
                     case 'question':
-                        title = detail.title;
+                        title = utils.ProcessImage(detail.detail);
                         description = detail.excerpt;
                         url = `https://www.zhihu.com/question/${detail.id}`;
                         break;

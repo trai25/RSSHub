@@ -1,6 +1,6 @@
 const axios = require('../../utils/axios');
 const cheerio = require('cheerio');
-const config = require('../../config');
+const utils = require('./utils');
 
 module.exports = async (ctx) => {
     const id = ctx.params.id;
@@ -9,7 +9,7 @@ module.exports = async (ctx) => {
         method: 'get',
         url: `https://www.zhihu.com/collection/${id}`,
         headers: {
-            'User-Agent': config.ua,
+            ...utils.header,
             Referer: `https://www.zhihu.com/collection/${id}`,
         },
     });
@@ -27,13 +27,13 @@ module.exports = async (ctx) => {
             list
                 .map((index, item) => {
                     item = $(item);
-                    let linkUrl = item.find('link').attr('href');
+                    let linkUrl = item.find('link').attr('href') || '';
                     if (linkUrl.startsWith('/')) {
                         linkUrl = 'https://www.zhihu.com' + linkUrl;
                     }
                     return {
                         title: item.find('.zm-item-title a').text(),
-                        description: `内容：${item.find('textarea').text()}`,
+                        description: utils.ProcessImage(item.find('textarea').text()),
                         link: linkUrl,
                     };
                 })

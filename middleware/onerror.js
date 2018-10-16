@@ -1,4 +1,10 @@
 const logger = require('../utils/logger');
+const Raven = require('raven');
+const config = require('../config');
+
+if (config.sentry) {
+    Raven.config(config.sentry).install();
+}
 
 module.exports = async (ctx, next) => {
     try {
@@ -8,7 +14,23 @@ module.exports = async (ctx, next) => {
         ctx.set({
             'Content-Type': 'text/html; charset=UTF-8',
         });
-        ctx.body = 'RSSHub 发生了一些意外: ' + err;
-        ctx.status = 500;
+        ctx.body = `RSSHub 发生了一些意外: <pre>${err instanceof Error ? err.stack : err}</pre>`;
+        if (err.status === 401) {
+            ctx.status = 401;
+        } else {
+            ctx.status = 404;
+        }
+
+        if (config.sentry) {
+            Raven.captureException(
+                err,
+                {
+                    req: ctx.req,
+                },
+                function(err, eventId) {
+                    console.log('Reported error ' + eventId);
+                }
+            );
+        }
     }
 };

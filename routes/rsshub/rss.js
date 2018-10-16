@@ -1,13 +1,11 @@
 const axios = require('../../utils/axios');
 const cheerio = require('cheerio');
-const config = require('../../config');
 
 module.exports = async (ctx) => {
     const response = await axios({
         method: 'get',
         url: 'https://github.com/DIYgod/RSSHub/releases.atom',
         headers: {
-            'User-Agent': config.ua,
             Referer: 'https://github.com/DIYgod/RSSHub',
         },
     });
@@ -22,7 +20,7 @@ module.exports = async (ctx) => {
     ctx.state.data = {
         title: 'RSSHub 有新的 RSS 支持',
         link: 'https://github.com/DIYgod/RSSHub',
-        description: '使用 RSS 连接全世界',
+        description: '万物皆可 RSS',
         item:
             list &&
             list

@@ -1,6 +1,6 @@
 const axios = require('../../utils/axios');
-const config = require('../../config');
 const weiboUtils = require('./utils');
+const date = require('../../utils/date');
 
 module.exports = async (ctx) => {
     const uid = ctx.params.uid;
@@ -9,7 +9,6 @@ module.exports = async (ctx) => {
         method: 'get',
         url: `https://m.weibo.cn/api/container/getIndex?type=uid&value=${uid}`,
         headers: {
-            'User-Agent': config.ua,
             Referer: 'https://m.weibo.cn/',
         },
     });
@@ -20,7 +19,6 @@ module.exports = async (ctx) => {
         method: 'get',
         url: `https://m.weibo.cn/api/container/getIndex?type=uid&value=${uid}&containerid=${containerid}`,
         headers: {
-            'User-Agent': config.ua,
             Referer: `https://m.weibo.cn/u/${uid}`,
         },
     });
@@ -30,11 +28,12 @@ module.exports = async (ctx) => {
         link: `http://weibo.com/${uid}/`,
         description: `${name}的微博`,
         item: response.data.data.cards.filter((item) => item.mblog && !item.mblog.isTop).map((item) => {
-            const title = item.mblog.text.replace(/<.*?>/g, '');
+            const description = weiboUtils.format(item.mblog);
+            const title = description.replace(/<img.*?>/g, '[图片]').replace(/<.*?>/g, '');
             return {
-                title: title.length > 24 ? title.slice(0, 24) + '...' : title,
-                description: weiboUtils.format(item.mblog),
-                pubDate: weiboUtils.getTime(item.mblog.created_at),
+                title,
+                description: description,
+                pubDate: date(item.mblog.created_at, 8),
                 link: `https://weibo.com/${uid}/${item.mblog.bid}`,
             };
         }),

@@ -1,29 +1,14 @@
 const axios = require('../../utils/axios');
-const qs = require('querystring');
-const config = require('../../config');
+const cache = require('./cache');
 
 module.exports = async (ctx) => {
     const uid = ctx.params.uid;
-
-    const nameResponse = await axios({
-        method: 'post',
-        url: 'https://space.bilibili.com/ajax/member/GetInfo',
-        headers: {
-            'User-Agent': config.ua,
-            Referer: `https://space.bilibili.com/${uid}/`,
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        data: qs.stringify({
-            mid: uid,
-        }),
-    });
-    const name = nameResponse.data.data.name;
+    const name = await cache.getUsernameFromUID(ctx, uid);
 
     const countResponse = await axios({
         method: 'get',
         url: `https://api.bilibili.com/x/relation/stat?vmid=${uid}`,
         headers: {
-            'User-Agent': config.ua,
             Referer: `https://space.bilibili.com/${uid}/`,
         },
     });
@@ -33,7 +18,6 @@ module.exports = async (ctx) => {
         method: 'get',
         url: `https://api.bilibili.com/x/relation/followings?vmid=${uid}`,
         headers: {
-            'User-Agent': config.ua,
             Referer: `https://space.bilibili.com/${uid}/`,
         },
     });

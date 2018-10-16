@@ -1,6 +1,6 @@
-const axios = require('../../utils/axios');
 const cheerio = require('cheerio');
-const config = require('../../config');
+const qs = require('querystring');
+const axios = require('../../utils/axios');
 
 function isNormalTime(time) {
     return /^(\d{2}):(\d{2})$/.test(time);
@@ -32,15 +32,17 @@ function getPubDate(time) {
 }
 
 module.exports = async (ctx) => {
-    const { kw } = ctx.params;
+    const { kw, cid } = ctx.params;
 
     // PC端：https://tieba.baidu.com/f?kw=${encodeURIComponent(kw)}
     // 移动端接口：https://tieba.baidu.com/mo/q/m?kw=${encodeURIComponent(kw)}&lp=5024&forum_recommend=1&lm=0&cid=0&has_url_param=1&pn=0&is_ajax=1
+    const params = { kw: encodeURIComponent(kw) };
+    ctx._matchedRoute.includes('good') && (params.tab = 'good');
+    cid && (params.cid = cid);
     const { data } = await axios({
         method: 'get',
-        url: `https://tieba.baidu.com/f?kw=${encodeURIComponent(kw)}`,
+        url: `https://tieba.baidu.com/f?${qs.stringify(params)}`,
         headers: {
-            'User-Agent': config.ua,
             Referer: 'https://tieba.baidu.com/',
         },
     });
